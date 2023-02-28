@@ -72,7 +72,8 @@
   </div>
 
   <form on:submit|preventDefault={sendMessage}>
-    <input bind:value={newMessage} placeholder="Message" type="text" />
+    <!-- svelte-ignore a11y-autofocus -->
+    <input bind:value={newMessage} placeholder="Message" type="text" autofocus />
     <button type="submit">Send</button>
   </form>
 {/if}
@@ -126,5 +127,24 @@
 
 .msg .msg-text {
   margin-top: 0.2rem;
+}
+
+form {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+form input {
+  flex-basis: 80%;
+  height: 2.5rem;
+  border-radius: 0.3rem;
+  border: none;
+  padding: 0 0.5rem;
+}
+
+form button {
+  height: 2.5rem;
+  flex-basis: 16%;
 }
 </style>

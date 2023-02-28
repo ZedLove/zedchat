@@ -10,9 +10,9 @@
   * [] client-side validation?
 
 ## Messages
-* [] style message input area
 * [] add timestamp
-* [*] auto-scroll to newest
+* [x] style message input area
+* [x] auto-scroll to newest
 
 ## Deployment
 * [] automate deployment on merge with gh actions
