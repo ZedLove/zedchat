@@ -10,10 +10,10 @@ This project uses `nvm`. To ensure you are using compatible `node` and `npm` ver
 
 * `npm ci`
 * `npm run dev`
-* `pocketbase serve` (after running migrations)
+* `pocketbase serve` (migrations should be run automatically)
 
 The running application can be found at [localhost:5173/zedchat/](http://localhost:5173/zedchat/). The `base` path can be configured in `vite.config.ts`.
 
-### Database (local support is work-in-progress)
+### Database
 
 You will need a local [pocketbase](https://pocketbase.io/docs/) instance running with the latest migrations from the `pb_migrations/` directory in this project. Data is persisted in an untracked `pb_data/` directory.
