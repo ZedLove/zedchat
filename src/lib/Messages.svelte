@@ -1,5 +1,6 @@
 <script lang="ts">
-  import { onMount, onDestroy } from 'svelte';
+  import { afterUpdate, beforeUpdate, onDestroy, onMount } from 'svelte';
+  import { fade, slide } from 'svelte/transition';
   import { currentUser, pb } from './pocketbase';
 
   let messages = [];
@@ -33,29 +34,97 @@
       user: $currentUser.id,
     };
     const createdMessage = await pb.collection('messages').create(data);
+    newMessage = "";
   }
 
   onDestroy(() => unsubscribe?.());
+
+  let messageList;
+  let autoscroll;
+
+  beforeUpdate(() => {
+    autoscroll = messageList && (messageList.offsetHeight + messageList.scrollTop) > (messageList.scrollHeight - 20);
+  });
+
+  afterUpdate(() => {
+    if (autoscroll) messageList.scrollTo(0, messageList.scrollHeight);
+  });
+
 </script>
 
-<div class="messages">
-  {#each messages as message (message.id)}
-    <div class="msg">
-      <img
-        class="avatar"
-        src={`https://avatars.dicebear.com/api/identicon/${message.expand.user.username}.svg`}
-        alt="user avatar"
-        width="30px"
-      />
-      <div>
-        <small>Sent by @{message.expand.user.username}</small>
+{#if $currentUser}
+  <div class="messages" bind:this={messageList} transition:slide>
+    <div class="curtain" />
+    {#each messages as message (message.id)}
+      <div class="msg {$currentUser.id === message.expand.user.id ? 'author' : 'recipient'}" transition:fade>
+        <div class="info">
+          <img
+            class="avatar"
+            src={`https://avatars.dicebear.com/api/identicon/${message.expand.user.username}.svg`}
+            alt="user avatar"
+            width="30px"
+          />
+          <small>@{message.expand.user.username}</small>
+        </div>
         <p class="msg-text">{message.text}</p>
       </div>
-    </div>
-  {/each}
-</div>
+    {/each}
+  </div>
 
-<form on:submit|preventDefault={sendMessage}>
-  <input bind:value={newMessage} placeholder="Message" type="text" />
-  <button type="submit">Send</button>
-</form>
+  <form on:submit|preventDefault={sendMessage}>
+    <input bind:value={newMessage} placeholder="Message" type="text" />
+    <button type="submit">Send</button>
+  </form>
+{/if}
+
+<style>
+.messages {
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+  align-items: flex-start;
+  width: 100%;
+  margin-bottom: 1rem;
+}
+
+.messages .curtain {
+  position: fixed;
+  background: linear-gradient(0deg, rgba(1,1,1,0) 0%, var(--main-bg-color) 100%);
+  height: 1.5rem;
+}
+
+.msg {
+  min-width: 44%;
+  max-width: 320px;
+  border-radius: 0.375rem;
+  padding: 0.375rem;
+  margin: 0.175rem 0;
+  text-align: left;
+}
+
+.msg.author {
+  background-color: #4e8bc7;
+  align-self: flex-end;
+}
+
+.msg.recipient {
+  background-color: #7f7f7f;
+  align-self: flex-start;
+}
+
+.msg .info {
+  display: flex;
+  align-items: center;
+  padding: 0.5rem;
+  background-color: rgba(50, 50, 50, 0.2);
+  border-radius: 0.375rem;
+}
+
+.msg .info small {
+  margin: 0 0.5rem;
+}
+
+.msg .msg-text {
+  margin-top: 0.2rem;
+}
+</style>

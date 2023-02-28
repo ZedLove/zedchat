@@ -12,7 +12,7 @@
 ## Messages
 * [] style message input area
 * [] add timestamp
-* [] auto-scroll to newest
+* [*] auto-scroll to newest
 
 ## Deployment
 * [] automate deployment on merge with gh actions
