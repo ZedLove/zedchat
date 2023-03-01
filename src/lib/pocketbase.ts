@@ -6,4 +6,4 @@ export const pb = new PocketBase(dbUrl);
 
 export const currentUser = writable(pb.authStore.model);
 
-pb.authStore.onChange(auth => currentUser.set(pb.authStore.model));
+pb.authStore.onChange(() => currentUser.set(pb.authStore.model));

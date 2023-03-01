@@ -1,4 +1,5 @@
 <script lang="ts">
+  import type { UnsubscribeFunc } from 'pocketbase';
   import { afterUpdate, beforeUpdate, onDestroy, onMount } from 'svelte';
   import { fade, slide } from 'svelte/transition';
   import type { MessagesRecord, MessagesResponse, UsersResponse } from './db';
@@ -9,7 +10,7 @@
 
   let messages: Message[] = [];
   let newMessage: string;
-  let unsubscribe: () => void;
+  let unsubscribe: UnsubscribeFunc;
 
   onMount(async () => {
     const resultList = await pb.collection(Collections.Messages).getList<Message>(1, 50, {
@@ -20,6 +21,9 @@
 
     unsubscribe = await pb
       .collection(Collections.Messages)
+      // The type of the callback passed to subscribe() appears to be incorrect
+      // as it does not expect a Promise to be used, but this works as expected
+      /* eslint-disable-next-line @typescript-eslint/no-misused-promises */
       .subscribe<Message>('*', async ({action, record}) => {
         if (action === 'create') {
           const user = await pb.collection(Collections.Users).getOne<UsersResponse>(record.user);
@@ -29,7 +33,7 @@
         if (action === 'delete') {
           messages = messages.filter(m => m.id !== record.id);
         }
-      })
+      });
   });
 
   async function sendMessage() {
@@ -37,7 +41,7 @@
       text: newMessage,
       user: $currentUser?.id,
     };
-    const createdMessage = await pb.collection(Collections.Messages).create<MessagesRecord>(data);
+    await pb.collection(Collections.Messages).create<MessagesRecord>(data);
     newMessage = '';
   }
 
@@ -47,13 +51,12 @@
   let autoscroll: boolean;
 
   beforeUpdate(() => {
-    autoscroll = messageList && (messageList.offsetHeight + messageList.scrollTop) > (messageList.scrollHeight - 20);
+    autoscroll = messageList && messageList.offsetHeight + messageList.scrollTop > messageList.scrollHeight - 20;
   });
 
   afterUpdate(() => {
     if (autoscroll) messageList.scrollTo(0, messageList.scrollHeight);
   });
-
 </script>
 
 {#if $currentUser}
@@ -64,7 +67,7 @@
         <div class="info">
           <img
             class="avatar"
-            src={`https://avatars.dicebear.com/api/identicon/${message.expand?.user.username}.svg`}
+            src={`https://avatars.dicebear.com/api/identicon/${message.expand?.user.username ?? 'unknown-user'}.svg`}
             alt="user avatar"
             width="30px"
           />

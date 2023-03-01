@@ -1,33 +1,35 @@
 <script lang="ts">
-  import { currentUser, pb } from "./pocketbase";
+import type { UsersRecord } from './db';
+import { currentUser, pb } from './pocketbase';
 
-  let username: string;
-  let password: string;
+let username: string;
+let password: string;
 
-  async function login() {
-    await pb.collection('users').authWithPassword(username, password);
+async function login() {
+  await pb.collection('users').authWithPassword(username, password);
+}
+
+async function signUp() {
+  try {
+    const userPayload = {
+      username,
+      password,
+      passwordConfirm: password,
+      name: 'TODO',
+    };
+    await pb.collection('users').create<UsersRecord>(userPayload);
+    await login();
+  } catch (error) {
+    // TODO: handle error
+    password = ''; // TODO: is this how to reset a svelte value?
+    console.error(`Error while creating new user ${username}:`, error);
   }
+}
 
-  async function signUp() {
-    try {
-      const userPayload = {
-        username,
-        password,
-        passwordConfirm: password,
-        name: 'TODO',
-      };
-      const createdUser = await pb.collection('users').create(userPayload);
-      await login();
-    } catch (error) {
-      // TODO: handle error
-      password = ''; // TODO: is this how to reset a svelte value?
-      console.error(`Error while creating new user ${username}: ${error}`);
-    }
-  }
-
-  function signOut() {
-    pb.authStore.clear();
-  }
+// TODO: use this
+// function signOut() {
+//   pb.authStore.clear();
+// }
 </script>
 
 {#if $currentUser}
