@@ -1,24 +1,28 @@
 <script lang="ts">
   import { afterUpdate, beforeUpdate, onDestroy, onMount } from 'svelte';
   import { fade, slide } from 'svelte/transition';
+  import type { MessagesRecord, MessagesResponse, UsersResponse } from './db';
+  import { Collections } from './db';
   import { currentUser, pb } from './pocketbase';
 
-  let messages = [];
+  type Message = MessagesResponse<{user: UsersResponse}>;
+
+  let messages: Message[] = [];
   let newMessage: string;
   let unsubscribe: () => void;
 
   onMount(async () => {
-    const resultList = await pb.collection('messages').getList(1, 50, {
+    const resultList = await pb.collection(Collections.Messages).getList<Message>(1, 50, {
       sort: 'created',
       expand: 'user',
     });
     messages = resultList.items;
 
     unsubscribe = await pb
-      .collection('messages')
-      .subscribe('*', async ({action, record}) => {
+      .collection(Collections.Messages)
+      .subscribe<Message>('*', async ({action, record}) => {
         if (action === 'create') {
-          const user = await pb.collection('users').getOne(record.user);
+          const user = await pb.collection(Collections.Users).getOne<UsersResponse>(record.user);
           record.expand = { user };
           messages = [...messages, record];
         }
@@ -31,16 +35,16 @@
   async function sendMessage() {
     const data = {
       text: newMessage,
-      user: $currentUser.id,
+      user: $currentUser?.id,
     };
-    const createdMessage = await pb.collection('messages').create(data);
-    newMessage = "";
+    const createdMessage = await pb.collection(Collections.Messages).create<MessagesRecord>(data);
+    newMessage = '';
   }
 
   onDestroy(() => unsubscribe?.());
 
-  let messageList;
-  let autoscroll;
+  let messageList: HTMLDivElement;
+  let autoscroll: boolean;
 
   beforeUpdate(() => {
     autoscroll = messageList && (messageList.offsetHeight + messageList.scrollTop) > (messageList.scrollHeight - 20);
@@ -56,15 +60,15 @@
   <div class="messages" bind:this={messageList} transition:slide>
     <div class="curtain" />
     {#each messages as message (message.id)}
-      <div class="msg {$currentUser.id === message.expand.user.id ? 'author' : 'recipient'}" transition:fade>
+      <div class="msg {$currentUser.id === message.expand?.user.id ? 'author' : 'recipient'}" transition:fade>
         <div class="info">
           <img
             class="avatar"
-            src={`https://avatars.dicebear.com/api/identicon/${message.expand.user.username}.svg`}
+            src={`https://avatars.dicebear.com/api/identicon/${message.expand?.user.username}.svg`}
             alt="user avatar"
             width="30px"
           />
-          <small>@{message.expand.user.username}</small>
+          <small>@{message.expand?.user.username}</small>
         </div>
         <p class="msg-text">{message.text}</p>
       </div>

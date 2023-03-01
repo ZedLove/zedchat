@@ -17,3 +17,6 @@ The running application can be found at [localhost:5173/zedchat/](http://localho
 ### Database
 
 You will need a local [pocketbase](https://pocketbase.io/docs/) instance running with the latest migrations from the `pb_migrations/` directory in this project. Data is persisted in an untracked `pb_data/` directory.
+
+Types for database entries are generated with `pocketbase-typegen` and declared in `src/lib/db.ts`. Should you need to re-generate types, use the following command:
+* `npm run gen-db-types`

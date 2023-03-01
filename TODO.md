@@ -1,6 +1,8 @@
 ## Code Quality
-* [] use TypeScript `strict` mode
 * [] add unit tests
+* [] add eslint
+* [] add renovate?
+* [x] use TypeScript `strict` mode
 
 ## Login
 * [] handle when auth goes stale
